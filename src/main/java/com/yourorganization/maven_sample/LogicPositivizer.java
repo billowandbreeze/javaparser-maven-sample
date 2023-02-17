@@ -18,8 +18,8 @@ import java.util.Scanner;
  */
 public class LogicPositivizer {
     public static void main(String[] args) {
-        System.out.println("File Location(eg. query/Query339):");
-        Scanner scan = new Scanner(System.in); //声明一个Scanner对象，初始输入流为控制台
+        System.out.println("Input File Location(eg. query/Query339):");
+        Scanner scan = new Scanner(System.in);
         String fileName = scan.nextLine();
         // JavaParser has a minimal logging class that normally logs nothing.
         // Let's ask it to write to standard out:
@@ -35,7 +35,7 @@ public class LogicPositivizer {
 
         // Print AST Tree
         YamlPrinter printer = new YamlPrinter(true);
-        System.out.println(printer.output(cu));
+        // System.out.println(printer.output(cu));
         // Save AST Tree
         try (OutputStream outputStream = new FileOutputStream("output/" + fileName + ".txt")){
             outputStream.write(printer.output(cu).getBytes(StandardCharsets.UTF_8));
