@@ -1,14 +1,6 @@
 package com.yourorganization.maven_sample;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.visitor.ModifierVisitor;
-import com.github.javaparser.ast.visitor.Visitable;
 import com.github.javaparser.printer.YamlPrinter;
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.Log;
@@ -19,14 +11,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.Scanner;
 
 /**
  * Some code that uses JavaParser.
  */
 public class LogicPositivizer {
     public static void main(String[] args) {
-        String fileName = "SimpleMethod";
+        System.out.println("File Location(eg. query/Query339):");
+        Scanner scan = new Scanner(System.in); //声明一个Scanner对象，初始输入流为控制台
+        String fileName = scan.nextLine();
         // JavaParser has a minimal logging class that normally logs nothing.
         // Let's ask it to write to standard out:
         Log.setAdapter(new Log.StandardOutStandardErrorAdapter());
@@ -51,59 +45,9 @@ public class LogicPositivizer {
 
         Log.info("Positivizing!");
 
-        cu.accept(new ModifierVisitor<Void>() {
-            HashMap<String, String> typeNameMap = new HashMap<>();
-            /**
-             * VariableDeclaration
-             * Find statement
-             *  -expression-Type=VariableDeclarationExpr
-             *      -initializer-Type=ObjectCreationExpr
-             *          -identifier(need)
-             *      -name
-             *          -identifier(need)
-             *      -type
-             *          -identifier(need)
-             * MethodCall
-             * Find statement
-             *  -expression-Type=MethodCallExpr
-             *      -name-Type=SimpleName
-             *          -identifier(need)
-             *      -scope-Type=NameExpr
-             *          -identifier(need)
-             */
-            @Override
-            public Visitable visit(VariableDeclarationExpr n, Void arg) {
-                // Find VariableDeclaration
-                n.getVariables().forEach(variableDeclarator -> {
-                    // add to map
-                    typeNameMap.put(variableDeclarator.getName().toString(), variableDeclarator.getType().toString());
-                    // variable type
-                    System.out.println(variableDeclarator.getType() + ".<init>");
-                    // variable name
-//                    System.out.println(variableDeclarator.getName());
-                    // variable value
-//                    System.out.println(variableDeclarator.getInitializer().get());
-                });
-
-                return super.visit(n, arg);
-            }
-
-            @Override
-            public Visitable visit(MethodCallExpr n, Void arg) {
-                // class or method
-                if (n.getScope().isPresent()) {
-                    if (typeNameMap.containsKey(n.getScope().get().toString())) {
-                        System.out.print(typeNameMap.get(n.getScope().get().toString()));
-                    } else {
-                        System.out.print(n.getScope().get());
-                    }
-                }
-                System.out.print("." + n.getName());
-                System.out.println();
-
-                return super.visit(n, arg);
-            }
-        }, null);
+        ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
+        cu.accept(modifierVisitor, null);
+        modifierVisitor.getResult().forEach(System.out::println);
 
         // This saves all the files we just read to an output directory.
         sourceRoot.saveAll(
