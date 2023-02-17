@@ -95,10 +95,10 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
         String className = "";
         if (n.getScope().isPresent()) {
             className = n.getScope().get().toString();
-            // cascading API calls
+
             if (className.contains(".")) {
+                // cascading API calls
                 String[] temp = className.split("\\.");
-                System.out.println(Arrays.toString(temp));
                 if (typeNameMap.containsKey(temp[0])) {
                     temp[0] = typeNameMap.get(temp[0]);
                 }
@@ -119,10 +119,10 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
     public List<String> getResult() {
         List<String> res = new ArrayList<>();
 
+        // condition: object name to class name
         classMethodList.forEach(classMethod -> {
             if (classMethod[0].contains(".")) {
                 String[] temp = classMethod[0].split("\\.");
-                System.out.println(Arrays.toString(temp));
                 if (paraNameMap.containsKey(temp[0])) {
                     temp[0] = paraNameMap.get(temp[0]);
                 }
@@ -132,6 +132,16 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
             }
             res.add(classMethod[0] + "." + classMethod[1]);
         });
+
+        // condition: cascading condition
+        for (int i = 0; i < res.size() - 1; i++) {
+            String s = Util.removeBrackets(res.get(i), 0);
+            res.set(i, s);
+            if (s.contains(Util.removeBrackets(res.get(i + 1), 0))) {
+                res.remove(i + 1);
+                i--;
+            }
+        }
 
         return res;
     }
