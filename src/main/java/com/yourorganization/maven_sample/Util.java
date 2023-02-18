@@ -2,7 +2,7 @@ package com.yourorganization.maven_sample;
 
 public class Util {
     public static String removeBrackets(String oldString, int start) {
-        if (oldString.indexOf("(", start) == -1) {
+        if (start >= oldString.length() || oldString.indexOf("(", start) == -1) {
             return oldString;
         }
         String bracket = oldString.substring(oldString.indexOf("(", start), oldString.indexOf(")", start) + 1);
@@ -11,6 +11,6 @@ public class Util {
     }
 
     public static void main(String[] args) {
-        System.out.println(removeBrackets("ArrayList<>.get(0000000000).trim(0).isEmpty(0).get(0000000000).trim(0).isEmpty(0).get(0000000000).trim(0).isEmpty(0)", 0));
+        System.out.println(removeBrackets("ArrayList<>.get(0000000000)", 0));
     }
 }

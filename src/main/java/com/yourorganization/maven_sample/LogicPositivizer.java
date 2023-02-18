@@ -15,6 +15,7 @@ import java.util.Scanner;
 
 /**
  * Some code that uses JavaParser.
+ * Test code for single java file.
  */
 public class LogicPositivizer {
     public static void main(String[] args) {

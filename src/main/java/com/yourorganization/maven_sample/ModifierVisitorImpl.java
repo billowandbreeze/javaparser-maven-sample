@@ -1,10 +1,9 @@
 package com.yourorganization.maven_sample;
 
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
@@ -109,6 +108,19 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
             }
         }
         classMethodList.add(new String[] {className, n.getName() + "()"});
+
+        return super.visit(n, arg);
+    }
+
+    /**
+     * eg. lines.get(i).trim().isEmpty()
+     * condition-MethodCallExpr
+     *  -name-SimpleName
+     */
+    @Override
+    public Visitable visit(IfStmt n, A arg) {
+
+
 
         return super.visit(n, arg);
     }
