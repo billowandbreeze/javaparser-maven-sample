@@ -10,8 +10,8 @@ import com.github.javaparser.ast.visitor.Visitable;
 import java.util.*;
 
 public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
-    HashMap<String, String> paraNameMap = new HashMap<>();
-    HashMap<String, String> typeNameMap = new HashMap<>();
+    Map<String, String> paraNameMap = new HashMap<>();
+    Map<String, String> typeNameMap = new HashMap<>();
     List<String[]> classMethodList = new ArrayList<>();
 
     /**
@@ -129,31 +129,12 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      * Return the API Sequence
      */
     public List<String> getResult() {
-        List<String> res = new ArrayList<>();
 
         // condition: object name to class name
-        classMethodList.forEach(classMethod -> {
-            if (classMethod[0].contains(".")) {
-                String[] temp = classMethod[0].split("\\.");
-                if (paraNameMap.containsKey(temp[0])) {
-                    temp[0] = paraNameMap.get(temp[0]);
-                }
-                classMethod[0] = String.join(".", temp);
-            } else if (paraNameMap.containsKey(classMethod[0])) {
-                classMethod[0] = paraNameMap.get(classMethod[0]);
-            }
-            res.add(classMethod[0] + "." + classMethod[1]);
-        });
+        List<String> res = Util.objectNameToClassName(classMethodList, paraNameMap);
 
         // condition: cascading condition
-        for (int i = 0; i < res.size() - 1; i++) {
-            String s = Util.removeBrackets(res.get(i), 0);
-            res.set(i, s);
-            if (s.contains(Util.removeBrackets(res.get(i + 1), 0))) {
-                res.remove(i + 1);
-                i--;
-            }
-        }
+        res = Util.cascadingCondition(res);
 
         return res;
     }

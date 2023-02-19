@@ -30,8 +30,10 @@ public class BatchLogicPositivizer {
 
                     // Our sample is in the root of this directory, so no package name.
                     // ___________________________________
+                    System.out.println(jsonObject.getString("path"));
                     CompilationUnit cu = StaticJavaParser.parse("class TempClass { " + code + " }");
-                    System.out.println("class TempClass { " + code + " }");
+                    // System.out.println("class TempClass { " + code + " }");
+                    outputStream.write((code + "\n").getBytes(StandardCharsets.UTF_8));
 
                     ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
                     cu.accept(modifierVisitor, null);

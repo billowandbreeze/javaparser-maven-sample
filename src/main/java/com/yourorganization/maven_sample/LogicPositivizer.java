@@ -22,6 +22,9 @@ public class LogicPositivizer {
         System.out.println("Input File Location(eg. query/Query339):");
         Scanner scan = new Scanner(System.in);
         String fileName = scan.nextLine();
+        if (fileName.equals("")) {
+            fileName = "query/Query339";
+        }
         // JavaParser has a minimal logging class that normally logs nothing.
         // Let's ask it to write to standard out:
         Log.setAdapter(new Log.StandardOutStandardErrorAdapter());
