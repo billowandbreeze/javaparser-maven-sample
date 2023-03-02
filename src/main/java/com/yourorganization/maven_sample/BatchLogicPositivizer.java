@@ -1,5 +1,6 @@
 package com.yourorganization.maven_sample;
 
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import org.json.JSONObject;
 import com.github.javaparser.ast.CompilationUnit;
@@ -7,7 +8,9 @@ import com.github.javaparser.utils.Log;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Some code that uses JavaParser.
@@ -19,41 +22,61 @@ public class BatchLogicPositivizer {
         // Let's ask it to write to standard out:
         Log.setAdapter(new Log.StandardOutStandardErrorAdapter());
 
+        // File that contains batch of code snippets.
+        String name = "valid1";
+
         // Open source file
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/test.jsonl"))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/batch/" + name + ".jsonl"));
+             OutputStream outputStream = new FileOutputStream("output/res1/" + name + ".jsonl")
+        ) {
+            // Read line
             String line = bufferedReader.readLine();
 
-            try (OutputStream outputStream = new FileOutputStream("output/test.txt")){
-                while(line != null) {
-                    JSONObject jsonObject = new JSONObject(line);
-                    String code = jsonObject.getString("code");
+            while(line != null) {
+                // Get information from line
+                JSONObject jsonObject = new JSONObject(line);
+                String code = jsonObject.getString("code");
 
-                    // Our sample is in the root of this directory, so no package name.
-                    // ___________________________________
-                    System.out.println(jsonObject.getString("path"));
-                    CompilationUnit cu = StaticJavaParser.parse("class TempClass { " + code + " }");
-                    // System.out.println("class TempClass { " + code + " }");
-                    outputStream.write((code + "\n").getBytes(StandardCharsets.UTF_8));
-
-                    ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
-                    cu.accept(modifierVisitor, null);
-                    List<String> res = modifierVisitor.getResult();
-
-                    res.forEach(s -> {
-                        try {
-                            outputStream.write((s + "\n").getBytes(StandardCharsets.UTF_8));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    outputStream.write("----------------------------\n".getBytes(StandardCharsets.UTF_8));
-                    line = bufferedReader.readLine();
+                CompilationUnit cu = null;
+                // Parse code to AST tree
+                try {
+                    cu = StaticJavaParser.parse("class TempClass { " + code + " }");
+                } catch (ParseProblemException e) {
+                    System.out.println(code);
+                    System.out.println("Does it miss a '}'? (y/n)");
+                    Scanner scan = new Scanner(System.in);
+                    String check = scan.nextLine();
+                    if (check.equals("n")) {
+                        e.printStackTrace();
+                    } else {
+                        cu = StaticJavaParser.parse("class TempClass { " + code + " } }");
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                // Add api sequence
+                ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
+                cu.accept(modifierVisitor, null);
+                List<String> res = modifierVisitor.getResult();
+                jsonObject.put("api_sequence", res);
+
+                // Human check
+                System.out.println(code);
+                res.forEach(System.out::println);
+                System.out.println("Is the api sequence ok? (y/n)");
+                Scanner scan = new Scanner(System.in);
+                String check = scan.nextLine();
+                if (check.equals("n")) {
+                    throw new Exception("New Error!");
+                } else {
+                    System.out.println("Fine");
+                }
+
+                // Write to file
+                outputStream.write((jsonObject + "\n").getBytes(StandardCharsets.UTF_8));
+                // Update line
+                line = bufferedReader.readLine();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

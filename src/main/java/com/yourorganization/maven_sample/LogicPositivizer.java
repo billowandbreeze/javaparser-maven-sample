@@ -23,7 +23,7 @@ public class LogicPositivizer {
         Scanner scan = new Scanner(System.in);
         String fileName = scan.nextLine();
         if (fileName.equals("")) {
-            fileName = "query/Query339";
+            fileName = "TempClass";
         }
         // JavaParser has a minimal logging class that normally logs nothing.
         // Let's ask it to write to standard out:
@@ -39,7 +39,6 @@ public class LogicPositivizer {
 
         // Print AST Tree
         YamlPrinter printer = new YamlPrinter(true);
-        // System.out.println(printer.output(cu));
         // Save AST Tree
         try (OutputStream outputStream = new FileOutputStream("output/" + fileName + ".txt")){
             outputStream.write(printer.output(cu).getBytes(StandardCharsets.UTF_8));
@@ -47,7 +46,7 @@ public class LogicPositivizer {
             e.printStackTrace();
         }
 
-        Log.info("Positivizing!");
+        Log.info("Process information from AST tree...");
 
         ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
         cu.accept(modifierVisitor, null);

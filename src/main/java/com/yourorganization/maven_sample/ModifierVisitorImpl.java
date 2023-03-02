@@ -1,9 +1,12 @@
 package com.yourorganization.maven_sample;
 
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
@@ -113,17 +116,20 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
     }
 
     /**
-     * eg. lines.get(i).trim().isEmpty()
-     * condition-MethodCallExpr
-     *  -name-SimpleName
+     * eg. return ParameterizedTypeImpl(ownerType, rawType, typeArguments)
+     * statement-ReturnStmt
+     *  -expression-ObjectCreationExpr
+     *      -type-ClassOrInterfaceType
+     *          -name-SimpleName
+     *              -identifier-ParameterizedTypeImpl
      */
     @Override
-    public Visitable visit(IfStmt n, A arg) {
-
-
+    public Visitable visit(ObjectCreationExpr n, A arg) {
+        classMethodList.add(new String[] {n.getTypeAsString() + "()", "<init>"});
 
         return super.visit(n, arg);
     }
+
 
     /**
      * Return the API Sequence

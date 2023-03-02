@@ -59,6 +59,7 @@ public class Util {
                     i--;
                 }
             } catch (Exception e) {
+                System.out.println(res.get(i));
                 System.out.println(e.getMessage());
                 System.out.println("Errors about brackets");
             }
