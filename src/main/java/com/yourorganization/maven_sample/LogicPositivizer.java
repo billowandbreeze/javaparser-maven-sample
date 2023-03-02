@@ -48,7 +48,7 @@ public class LogicPositivizer {
 
         Log.info("Process information from AST tree...");
 
-        ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
+        ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>("TempClass");
         cu.accept(modifierVisitor, null);
         modifierVisitor.getResult().forEach(System.out::println);
 

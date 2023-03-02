@@ -1,21 +1,29 @@
 package com.yourorganization.maven_sample;
 
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
 import java.util.*;
 
 public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
-    Map<String, String> paraNameMap = new HashMap<>();
-    Map<String, String> typeNameMap = new HashMap<>();
-    List<String[]> classMethodList = new ArrayList<>();
+
+    final String INIT_STRING = "<init>";
+    private String className = "";
+
+    private Map<String, String> paraNameMap = new HashMap<>();
+    private Map<String, String> typeNameMap = new HashMap<>();
+    private List<String[]> classMethodList = new ArrayList<>();
+
+    /**
+     * Solve problems about custom method.
+     */
+    public ModifierVisitorImpl(String className) {
+        this.className = className;
+    }
 
     /**
      * eg. String path
@@ -52,15 +60,18 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
     public Visitable visit(VariableDeclarationExpr n, A arg) {
         // Find VariableDeclaration
         n.getVariables().forEach(variableDeclarator -> {
-            // if type is ObjectCreationExpr
             if (variableDeclarator.getInitializer().isPresent()) {
+                // if type is ObjectCreationExpr
                 if (variableDeclarator.getInitializer().get().isObjectCreationExpr()) {
                     // type name
                     String typeName = variableDeclarator.getInitializer().get().asObjectCreationExpr().getType().toString();
                     // add to map
                     typeNameMap.put(variableDeclarator.getName().toString(), typeName);
                     // variable type
-                    classMethodList.add(new String[] {typeName, "<init>"});
+                    classMethodList.add(new String[] {typeName, INIT_STRING});
+                // if type is MethodCallExpr
+                } else if (variableDeclarator.getInitializer().get().isMethodCallExpr()) {
+                    typeNameMap.put(variableDeclarator.getName().asString(), variableDeclarator.getType().asString());
                 }
             }
         });
@@ -125,7 +136,7 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      */
     @Override
     public Visitable visit(ObjectCreationExpr n, A arg) {
-        classMethodList.add(new String[] {n.getTypeAsString() + "()", "<init>"});
+        classMethodList.add(new String[] {n.getTypeAsString() + "()", INIT_STRING});
 
         return super.visit(n, arg);
     }
@@ -137,7 +148,7 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
     public List<String> getResult() {
 
         // condition: object name to class name
-        List<String> res = Util.objectNameToClassName(classMethodList, paraNameMap);
+        List<String> res = Util.objectNameToClassName(classMethodList, paraNameMap, className);
 
         // condition: cascading condition
         res = Util.cascadingCondition(res);

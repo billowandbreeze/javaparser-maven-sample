@@ -36,11 +36,12 @@ public class BatchLogicPositivizer {
                 // Get information from line
                 JSONObject jsonObject = new JSONObject(line);
                 String code = jsonObject.getString("code");
+                String className = jsonObject.getString("func_name").substring(0, jsonObject.getString("func_name").indexOf('.'));
 
                 CompilationUnit cu = null;
                 // Parse code to AST tree
                 try {
-                    cu = StaticJavaParser.parse("class TempClass { " + code + " }");
+                    cu = StaticJavaParser.parse("class " + className + " { " + code + " }");
                 } catch (ParseProblemException e) {
                     System.out.println(code);
                     System.out.println("Does it miss a '}'? (y/n)");
@@ -54,7 +55,7 @@ public class BatchLogicPositivizer {
                 }
 
                 // Add api sequence
-                ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>();
+                ModifierVisitorImpl<Void> modifierVisitor = new ModifierVisitorImpl<>(className);
                 cu.accept(modifierVisitor, null);
                 List<String> res = modifierVisitor.getResult();
                 jsonObject.put("api_sequence", res);

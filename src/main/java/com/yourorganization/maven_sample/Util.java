@@ -11,18 +11,24 @@ public class Util {
      * Transfer String[ObjectName, MethodName] to String ClassName.MethodName
      * @param classMethodList String[ObjectName, MethodName]
      * @param paraNameMap ClassName-ObjectName
+     * @param className If the object name is null, then consider the method as custom method. So the file name is the class name.
      * @return ClassName.MethodName
      */
-    public static List<String> objectNameToClassName(List<String[]> classMethodList, Map<String, String> paraNameMap) {
+    public static List<String> objectNameToClassName(List<String[]> classMethodList, Map<String, String> paraNameMap, String className) {
         List<String> res = new ArrayList<>();
         classMethodList.forEach(classMethod -> {
-            if (classMethod[0].contains(".")) {
+            if (classMethod[0].isEmpty()) {
+                // If object name is null
+                classMethod[0] = className;
+            } else if (classMethod[0].contains(".")) {
+                // If object name is not null and has '.'
                 String[] temp = classMethod[0].split("\\.");
                 if (paraNameMap.containsKey(temp[0])) {
                     temp[0] = paraNameMap.get(temp[0]);
                 }
                 classMethod[0] = String.join(".", temp);
             } else if (paraNameMap.containsKey(classMethod[0])) {
+                // If object name is not null and not has '.'
                 classMethod[0] = paraNameMap.get(classMethod[0]);
             }
             res.add(classMethod[0] + "." + classMethod[1]);
