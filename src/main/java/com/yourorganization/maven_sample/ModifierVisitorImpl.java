@@ -4,6 +4,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
@@ -12,7 +13,7 @@ import java.util.*;
 public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
 
     final String INIT_STRING = "<init>";
-    private String className = "";
+    private String className;
 
     private Map<String, String> paraNameMap = new HashMap<>();
     private Map<String, String> typeNameMap = new HashMap<>();
@@ -36,7 +37,11 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      */
     @Override
     public Visitable visit(Parameter n, A arg) {
-        paraNameMap.put(n.getName().toString(), n.getType().toString());
+        if (n.getType().isClassOrInterfaceType()) {
+            paraNameMap.put(n.getName().toString(), n.getType().asClassOrInterfaceType().getName().asString());
+        } else {
+            paraNameMap.put(n.getName().toString(), n.getType().toString());
+        }
 
         return super.visit(n, arg);
     }
@@ -71,7 +76,11 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
                     classMethodList.add(new String[] {typeName, INIT_STRING});
                 // if type is MethodCallExpr
                 } else if (variableDeclarator.getInitializer().get().isMethodCallExpr()) {
-                    typeNameMap.put(variableDeclarator.getName().asString(), variableDeclarator.getType().asString());
+                    if (variableDeclarator.getType().isClassOrInterfaceType()) {
+                        typeNameMap.put(variableDeclarator.getName().asString(), variableDeclarator.getType().asClassOrInterfaceType().getName().asString());
+                    } else {
+                        typeNameMap.put(variableDeclarator.getName().asString(), variableDeclarator.getType().asString());
+                    }
                 }
             }
         });
@@ -106,7 +115,10 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
     public Visitable visit(MethodCallExpr n, A arg) {
         // class or method
         String className = "";
-        if (n.getScope().isPresent()) {
+        if (n.getScope().isPresent()
+                && (n.getScope().get().isMethodCallExpr()
+                || n.getScope().get().isNameExpr())) {
+
             className = n.getScope().get().toString();
 
             if (className.contains(".")) {
@@ -120,8 +132,16 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
                 // one API call
                 className = typeNameMap.get(className);
             }
+
+            classMethodList.add(new String[] {className, n.getName().asString()});
+        } else if (n.getScope().isPresent()
+                && n.getScope().get().isEnclosedExpr()
+                && n.getScope().get().asEnclosedExpr().getInner().isCastExpr()
+                && n.getScope().get().asEnclosedExpr().getInner().asCastExpr().getType().isClassOrInterfaceType()
+        ) {
+            classMethodList.add(new String[] {n.getScope().get().asEnclosedExpr().getInner().asCastExpr().getType().asClassOrInterfaceType().getName().asString(),
+                    n.getName().asString()});
         }
-        classMethodList.add(new String[] {className, n.getName() + "()"});
 
         return super.visit(n, arg);
     }
@@ -136,7 +156,7 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      */
     @Override
     public Visitable visit(ObjectCreationExpr n, A arg) {
-        classMethodList.add(new String[] {n.getTypeAsString() + "()", INIT_STRING});
+        classMethodList.add(new String[] {n.getType().getName().asString(), INIT_STRING});
 
         return super.visit(n, arg);
     }
