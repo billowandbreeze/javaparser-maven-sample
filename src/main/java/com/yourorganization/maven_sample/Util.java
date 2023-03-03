@@ -37,16 +37,18 @@ public class Util {
      * Remove content in the brackets and bracket itself
      * @param oldString Original string
      */
-    private static String removeBrackets(String oldString) {
+    private static String removeBrackets(String oldString, char left, char right) {
 
         Stack<int[]> stack = new Stack<>();
         List<String> brackets = new ArrayList<>();
 
         for(int i = 0; i < oldString.length(); i++) {
-            if (oldString.charAt(i) == '(') {
+            if (oldString.charAt(i) == left) {
                 stack.add(new int[]{0, i});
-            } else if (oldString.charAt(i) == ')') {
-                if (stack.peek()[0] == 0) {
+            } else if (oldString.charAt(i) == right) {
+                if (stack.isEmpty()) {
+                    return oldString;
+                } else if (stack.peek()[0] == 0) {
                     int temp = stack.pop()[1];
 
                     if (stack.isEmpty()) {
@@ -68,8 +70,8 @@ public class Util {
     public static List<String> cascadingCondition(List<String> res) {
         for (int i = 0; i < res.size() - 1; i++) {
             try {
-                String s = Util.removeBrackets(res.get(i));
-                String sNext = Util.removeBrackets(res.get(i + 1));
+                String s = Util.removeBrackets(res.get(i), '(', ')');
+                String sNext = Util.removeBrackets(res.get(i + 1), '(', ')');
 
                 res.set(i, s);
                 if (s.contains(sNext) && !s.equals(sNext)) {
@@ -82,13 +84,13 @@ public class Util {
         }
 
         if (!res.isEmpty()) {
-            res.set(res.size() - 1, Util.removeBrackets(res.get(res.size() - 1)));
+            res.set(res.size() - 1, Util.removeBrackets(res.get(res.size() - 1), '(', ')'));
         }
 
         return res;
     }
 
     public static void main(String[] args) {
-        System.out.println(removeBrackets("File((String) classpathElements.get(i)).toURI().toURL"));
+        System.out.println(removeBrackets("File((String) classpathElements.get(i)).toURI().toURL", '(', ')'));
     }
 }

@@ -23,11 +23,11 @@ public class BatchLogicPositivizer {
         Log.setAdapter(new Log.StandardOutStandardErrorAdapter());
 
         // File that contains batch of code snippets.
-        String name = "valid1";
+        String name = "train_all";
 
         // Open source file
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/batch/" + name + ".jsonl"));
-             OutputStream outputStream = new FileOutputStream("output/res1/" + name + ".jsonl")
+             OutputStream outputStream = new FileOutputStream("output/res_with_api_sequence/" + name + "_with_api_sequence.jsonl")
         ) {
             // Read line
             String line = bufferedReader.readLine();
@@ -48,7 +48,16 @@ public class BatchLogicPositivizer {
                     Scanner scan = new Scanner(System.in);
                     String check = scan.nextLine();
                     if (check.equals("n")) {
-                        e.printStackTrace();
+                        System.out.println(code);
+                        System.out.println("Is it a '_' method? (y/n)");
+                        scan = new Scanner(System.in);
+                        check = scan.nextLine();
+                        if (check.equals("n")) {
+                            e.printStackTrace();
+                        } else {
+                            code = code.replaceFirst("_", "methodName");
+                            cu = StaticJavaParser.parse("class TempClass { " + code + " }");
+                        }
                     } else {
                         cu = StaticJavaParser.parse("class TempClass { " + code + " } }");
                     }
@@ -61,16 +70,16 @@ public class BatchLogicPositivizer {
                 jsonObject.put("api_sequence", res);
 
                 // Human check
-                System.out.println(code);
+//                System.out.println(code);
                 res.forEach(System.out::println);
-                System.out.println("Is the api sequence ok? (y/n)");
-                Scanner scan = new Scanner(System.in);
-                String check = scan.nextLine();
-                if (check.equals("n")) {
-                    throw new Exception("New Error!");
-                } else {
-                    System.out.println("Fine");
-                }
+//                System.out.println("Is the api sequence ok? (y/n)");
+//                Scanner scan = new Scanner(System.in);
+//                String check = scan.nextLine();
+//                if (check.equals("n")) {
+//                    throw new Exception("New Error!");
+//                } else {
+//                    System.out.println("Fine");
+//                }
 
                 // Write to file
                 outputStream.write((jsonObject + "\n").getBytes(StandardCharsets.UTF_8));
