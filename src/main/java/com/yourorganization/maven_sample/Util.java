@@ -81,8 +81,8 @@ public class Util {
             }
         }
 
-        if (res.size() == 1) {
-            res.set(0, Util.removeBrackets(res.get(0)));
+        if (!res.isEmpty()) {
+            res.set(res.size() - 1, Util.removeBrackets(res.get(res.size() - 1)));
         }
 
         return res;
