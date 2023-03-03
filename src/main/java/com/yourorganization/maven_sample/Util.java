@@ -1,9 +1,6 @@
 package com.yourorganization.maven_sample;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Util {
 
@@ -37,17 +34,32 @@ public class Util {
     }
 
     /**
-     * Remove content in the brackets
+     * Remove content in the brackets and bracket itself
      * @param oldString Original string
-     * @param start From which character
      */
-    private static String removeBrackets(String oldString, int start) {
-        if (start >= oldString.length() || oldString.indexOf("(", start) == -1) {
-            return oldString;
+    private static String removeBrackets(String oldString) {
+
+        Stack<int[]> stack = new Stack<>();
+        List<String> brackets = new ArrayList<>();
+
+        for(int i = 0; i < oldString.length(); i++) {
+            if (oldString.charAt(i) == '(') {
+                stack.add(new int[]{0, i});
+            } else if (oldString.charAt(i) == ')') {
+                if (stack.peek()[0] == 0) {
+                    int temp = stack.pop()[1];
+
+                    if (stack.isEmpty()) {
+                        brackets.add(oldString.substring(temp, i + 1));
+                    }
+                }
+            }
         }
-        String bracket = oldString.substring(oldString.indexOf("(", start), oldString.indexOf(")", start) + 1);
-        oldString = oldString.replace(bracket, "()");
-        return removeBrackets(oldString, oldString.indexOf("(", start) + 2);
+
+        for (String bracket : brackets) {
+            oldString = oldString.replace(bracket, "");
+        }
+        return oldString;
     }
 
     /**
@@ -56,8 +68,8 @@ public class Util {
     public static List<String> cascadingCondition(List<String> res) {
         for (int i = 0; i < res.size() - 1; i++) {
             try {
-                String s = Util.removeBrackets(res.get(i), 0);
-                String sNext = Util.removeBrackets(res.get(i + 1), 0);
+                String s = Util.removeBrackets(res.get(i));
+                String sNext = Util.removeBrackets(res.get(i + 1));
 
                 res.set(i, s);
                 if (s.contains(sNext) && !s.equals(sNext)) {
@@ -65,16 +77,18 @@ public class Util {
                     i--;
                 }
             } catch (Exception e) {
-                System.out.println(res.get(i));
-                System.out.println(e.getMessage());
-                System.out.println("Errors about brackets");
+                e.printStackTrace();
             }
+        }
+
+        if (res.size() == 1) {
+            res.set(0, Util.removeBrackets(res.get(0)));
         }
 
         return res;
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println(removeBrackets("ArrayList<>.get(0000000000)", 0));
+    public static void main(String[] args) {
+        System.out.println(removeBrackets("File((String) classpathElements.get(i)).toURI().toURL"));
     }
 }

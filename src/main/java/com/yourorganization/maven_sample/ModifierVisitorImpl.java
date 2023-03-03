@@ -1,10 +1,10 @@
 package com.yourorganization.maven_sample;
 
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
@@ -24,6 +24,24 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      */
     public ModifierVisitorImpl(String className) {
         this.className = className;
+    }
+
+    /**
+     * eg. ((String) classpathElements.get(i))
+     * type-CastExpr
+     *  -expression
+     *  -type-ClassOrInterfaceType
+     *      -name
+     *          -identifier
+     */
+    @Override
+    public Visitable visit(CastExpr n, A arg) {
+        if (n.getType().isClassOrInterfaceType()) {
+            typeNameMap.put(n.getExpression().toString(), n.getType().asString());
+        }
+
+
+        return super.visit(n, arg);
     }
 
     /**
@@ -171,7 +189,7 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
         List<String> res = Util.objectNameToClassName(classMethodList, paraNameMap, className);
 
         // condition: cascading condition
-        res = Util.cascadingCondition(res);
+         res = Util.cascadingCondition(res);
 
         return res;
     }
