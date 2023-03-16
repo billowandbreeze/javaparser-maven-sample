@@ -1,10 +1,8 @@
 package com.yourorganization.maven_sample;
 
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.CastExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 
@@ -93,7 +91,8 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
                     // variable type
                     classMethodList.add(new String[] {typeName, INIT_STRING});
                 // if type is MethodCallExpr
-                } else if (variableDeclarator.getInitializer().get().isMethodCallExpr()) {
+                } else if (variableDeclarator.getInitializer().get().isMethodCallExpr() ||
+                        variableDeclarator.getInitializer().get().isNameExpr()) {
                     if (variableDeclarator.getType().isClassOrInterfaceType()) {
                         typeNameMap.put(variableDeclarator.getName().asString(), variableDeclarator.getType().asClassOrInterfaceType().getName().asString());
                     } else {
@@ -159,6 +158,8 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
         ) {
             classMethodList.add(new String[] {n.getScope().get().asEnclosedExpr().getInner().asCastExpr().getType().asClassOrInterfaceType().getName().asString(),
                     n.getName().asString()});
+        } else {
+            classMethodList.add(new String[]{"", n.getName().asString()});
         }
 
         return super.visit(n, arg);
@@ -174,7 +175,11 @@ public class ModifierVisitorImpl<A> extends ModifierVisitor<A> {
      */
     @Override
     public Visitable visit(ObjectCreationExpr n, A arg) {
-        classMethodList.add(new String[] {n.getType().getName().asString(), INIT_STRING});
+        if (n.getParentNode().isPresent() && n.getParentNode().get().getClass().getName().equals("com.github.javaparser.ast.body.VariableDeclarator")) {
+            System.out.println("Duplicate condition");
+        } else {
+            classMethodList.add(new String[] {n.getType().getName().asString(), INIT_STRING});
+        }
 
         return super.visit(n, arg);
     }

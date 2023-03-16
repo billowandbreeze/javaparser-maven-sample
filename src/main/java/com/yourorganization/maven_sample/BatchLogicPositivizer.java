@@ -27,7 +27,7 @@ public class BatchLogicPositivizer {
 
         // Open source file
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/batch/" + name + ".jsonl"));
-             OutputStream outputStream = new FileOutputStream("output/res_with_api_sequence/" + name + "_with_api_sequence.jsonl")
+             OutputStream outputStream = new FileOutputStream("output/res_with_api_sequence/" + name + "_with_api_sequence_v1.jsonl")
         ) {
             // Read line
             String line = bufferedReader.readLine();
@@ -69,7 +69,7 @@ public class BatchLogicPositivizer {
                 List<String> res = modifierVisitor.getResult();
                 jsonObject.put("api_sequence", res);
 
-                // Human check
+                // TODO: Human check
 //                System.out.println(code);
                 res.forEach(System.out::println);
 //                System.out.println("Is the api sequence ok? (y/n)");
